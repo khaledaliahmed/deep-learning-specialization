@@ -932,6 +932,295 @@ Here are the course summary as its given on the course [link](https://www.course
   ![](Images/84.png)
   - The diagram uses a `RepeatVector` node to copy s<sup>`<t-1>`</sup>'s value T<sub>x</sub> times, and then `Concatenation` to concatenate s<sup>`<t-1>`</sup> and a<sup>`<t>`</sup> to compute e<sup>`<t, t>`</sup>, which is then passed through a softmax to compute &alpha;<sup>`<t, t>`</sup>.
 
+## Transformer Network
+
+### The transformer network 
+  - is a deep learning model that can learn useful representations of sequences or sets of data-points, such as words in a sentence or pixels in an image. The transformer network does not use recurrent or convolutional layers, which are common in other sequence models, but instead relies on a mechanism called attention. Attention is a way of computing how much each element in a sequence or set is related to every other element, and using these relationships to create richer and more expressive representations. The transformer network uses two types of attention: self-attention and multi-headed attention.
+
+### Self-attention
+-  Self-attention is a way of computing a representation for each element in a sequence or set by taking into account the context from all the other elements. For example, in natural language processing, self-attention can help a model understand the meaning of a word by looking at the other words in the sentence.
+
+- Self-attention is computed by multiplying three matrices: the query, the key, and the value. The query and the key are derived from the input sequence or set, and the value is the same as the input. The query and the key are multiplied to get a score matrix, which measures how much each element is related to every other element. The score matrix is then normalized by a softmax function, which assigns a probability to each score. The softmax output is called the attention weights, which indicate how much attention each element should receive from the others. The attention weights are then multiplied by the value matrix, which gives the output matrix, which is the final representation of each element.
+
+- The equations for self-attention are:
+  - Q = X W<sub>Q</sub>
+  - K = X W<sub>K</sub>
+  - V = X W<sub>V</sub>
+  - Score = Query * Key<sup>T</sup>
+      - S = softmax((Q ** K<sup>T</sup>) / √d)
+  - Attention Weights = softmax(Score)
+  - Output = Attention Weights * Value
+    - Z = S V
+
+### Multi-headed attention
+- Multi-headed attention is a way of computing multiple versions of self-attention in parallel, and concatenating them to form a single output. Multi-headed attention allows the model to capture different aspects of the relationships between the elements, such as syntactic, semantic, or positional information. Multi-headed attention is computed by splitting the query, key, and value matrices into H smaller matrices, where H is the number of heads. Each head computes its own self-attention output, and the outputs are concatenated and projected to form the final output.
+
+  - The equations for multi-headed attention are:
+
+    - Query<sub>h</sub>​= Query × W<sub>h</sub><sup>Q</sup>
+    - Key<sub>h</sub> ​= Key × W<sub>h</sub><sup>K</sup>
+    - Value<sub>h</sub> ​= Value × W<sub>h</sub><sup>V</sup>
+    - Output<sub>h</sub> ​= Self-Attention(Query<sub>h</sub>​,Key<sub>h</sub>​,Value<sub>h</sub>​)
+    - Output= Concat(Output<sub>1</sub>​,…,Output<sub>H</sub>) × W<sup>O</sup>
+
+
+  - Where  W<sub>h</sub><sup>Q</sup>​, W<sub>h</sub><sup>K</sup>​, W<sub>h</sub><sup>V</sup>​, and W<sup>O</sup> are learnable weight matrices.
+
+### Position-wise Feed-Forward Network
+- The position-wise feed-forward network applies a non-linear transformation to each position independently.
+
+- Given the self-attention output Z, the position-wise feed-forward network computes the output as follows:
+
+- 1- Apply a linear transformation to each position:
+
+    - F = Z W<sub>1</sub> + b<sub>1</sub>
+
+    - Here, W<sub>1</sub> and b<sub>1</sub> are learnable weight matrix and bias vector.
+
+- 2 - Apply a non-linear activation function, such as ReLU:
+
+    - F = relu(F)
+
+- 3 -Apply another linear transformation:
+
+   - Y = F W<sub>2</sub> + b<sub>2</sub>
+
+   - Here, W<sub>2</sub> and b<sub>2</sub> are learnable weight matrix and bias vector.
+
+- 4 - Apply layer normalization to the output:
+
+    - Y = layer_norm(Y + Z)
+
+- The transformer network consists of two main components: the encoder and the decoder. The encoder takes an input sequence or set and applies a series of layers, each consisting of a multi-headed self-attention layer and a feed-forward layer, to produce a representation of the input. The decoder takes the encoder output and a target sequence or set, and applies a series of layers, each consisting of a masked multi-headed self-attention layer, a multi-headed cross-attention layer, and a feed-forward layer, to produce a prediction of the output. The masked multi-headed self-attention layer prevents the decoder from looking ahead at the future elements of the target sequence or set, while the cross-attention layer allows the decoder to attend to the encoder output. The transformer network can be trained end-to-end using a loss function that measures the difference between the predicted output and the actual output.
+
+
+### The transformer network has several advantages over other sequence models, such as:
+
+  - It can handle long-range dependencies better, as it does not suffer from the vanishing gradient problem or the problem of forgetting old information.
+  - It can process the entire input sequence or set in parallel, which makes it faster and more scalable.
+  - It can learn from different modalities of data, such as text, images, or audio, by using the same attention mechanism.
+- The transformer network has been widely used and adapted for various natural language processing tasks, such as machine translation, text summarization, text generation, question answering, and natural language understanding. It has also been extended to computer vision and spatio-temporal modeling tasks, such as image captioning, object detection, video understanding, and speech recognition.
+
+**Implementation in Python using TensorFlow**
+
+The following code shows how to implement a transformer network in Python using TensorFlow:
+
+```python
+import tensorflow as tf
+
+class Transformer(tf.keras.Model):
+
+    def __init__(self, num_layers, d_model, num_heads, dff, dropout):
+        super().__init__()
+
+        self.num_layers = num_layers
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.dff = dff
+        self.dropout = dropout
+
+        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
+        self.positional_encoding = PositionalEncoding(d_model)
+
+        self.encoder_layers = [EncoderLayer(d_model, num_heads, dff, dropout) for _ in range(num_layers)]
+        self.decoder_layers = [DecoderLayer(d_model, num_heads, dff, dropout) for _ in range(num_layers)]
+
+        self.output_layer = tf.keras.layers.Dense(vocab_size)
+
+    def call(self, inputs, training=False):
+
+        # Embed the input tokens
+        x = self.embedding(inputs)
+
+        # Add positional encoding
+        x = self.positional_encoding(x)
+
+        # Pass the input through the encoder layers
+        for layer in self.encoder_layers:
+            x = layer(x, training=training)
+
+        # Pass the input through the decoder layers
+        for layer in self.decoder_layers:
+            x = layer(x, training=training)
+
+        # Generate the output logits
+        logits = self.output_layer(x)
+
+        return logits
+
+class EncoderLayer(tf.keras.Model):
+
+    def __init__(self, d_model, num_heads, dff, dropout):
+        super().__init__()
+
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.dff = dff
+        self.dropout = dropout
+
+        self.self_attention = MultiHeadAttention(d_model, num_heads)
+        self.feed_forward = FeedForward(d_model, dff)
+
+        self.layer_norm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layer_norm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+
+        self.dropout1 = tf.keras.layers.Dropout(dropout)
+        self.dropout2 = tf.keras.layers.Dropout(dropout)
+
+    def call(self, inputs, training=False):
+
+        # Self-attention
+        x = self.self_attention(inputs, inputs, inputs)
+        x = self.dropout1(x, training=training)
+
+        # Layer normalization
+        x = self.layer_norm1(x + inputs)
+
+        # Feed forward
+        x = self.feed_forward(x)
+        x = self.dropout2(x, training=training)
+
+        # Layer normalization
+        x = self.layer_norm2(x + inputs)
+
+        return x
+
+class DecoderLayer(tf.keras.Model):
+
+    def __init__(self, d_model, num_heads, dff, dropout):
+        super().__init__()
+
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.dff = dff
+        self.dropout = dropout
+
+        self.self_attention = MultiHeadAttention(d_model, num_heads)
+        self.encoder_attention = MultiHeadAttention(d_model, num_heads)
+        self.feed_forward = FeedForward(d_model, dff)
+
+        self.layer_norm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layer_norm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layer_norm3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+
+        self.dropout1 = tf.keras.layers.Dropout(dropout)
+        self.dropout2 = tf.keras.layers.Dropout(dropout)
+        self.dropout3 = tf.keras.layers.Dropout(dropout)
+
+    def call(self, inputs, encoder_outputs, training=False):
+
+        # Self-attention
+        x = self.self_attention(inputs, inputs, inputs)
+        x = self.dropout1(x, training=training)
+
+        # Layer normalization
+        x = self.layer_norm1(x + inputs)
+
+        # Encoder-decoder attention
+        x = self.encoder_attention(x, encoder_outputs, encoder_outputs)
+        x = self.dropout2(x, training=training)
+
+        # Layer normalization
+        x = self.layer_norm2(x + inputs)
+
+        # Feed forward
+        x = self.feed_forward(x)
+        x = self.dropout3(x, training=training)
+
+        # Layer normalization
+        x = self.layer_norm3(x + inputs)
+
+        return x
+
+class MultiHeadAttention(tf.keras.Model):
+
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+
+        self.d_model = d_model
+        self.num_heads = num_heads
+
+        self.query_layer = tf.keras.layers.Dense(d_model)
+        self.key_layer = tf.keras.layers.Dense(d_model)
+        self.value_layer = tf.keras.layers.Dense(d_model)
+
+        self.output_layer = tf.keras.layers.Dense(d_model)
+
+    def call(self, query, key, value):
+
+        # Project the query, key, and value vectors
+        query = self.query_layer(query)
+        key = self.key_layer(key)
+        value = self.value_layer(value)
+
+        # Split the query, key, and value vectors into multiple heads
+        query = tf.split(query, self.num_heads, axis=-1)
+        key = tf.split(key, self.num_heads, axis=-1)
+        value = tf.split(value, self.num_heads, axis=-1)
+
+        # Calculate the attention scores
+        attention_scores = tf.matmul(query, key, transpose_b=True)
+        attention_scores = tf.nn.softmax(attention_scores, axis=-1)
+
+        # Calculate the weighted sum of the value vectors
+        output = tf.matmul(attention_scores, value)
+
+        # Concatenate the output vectors from the different heads
+        output = tf.concat(output, axis=-1)
+
+        # Project the output vector to the desired dimension
+        output = self.output_layer(output)
+
+        return output
+
+class FeedForward(tf.keras.Model):
+  """class PositionWiseFeedForward(tf.keras.layers.Layer):
+    def __init__(self, embed_dim, ff_dim):
+        super(PositionWiseFeedForward, self).__init__()
+        self.dense_1 = Dense(ff_dim, activation='relu')
+        self.dense_2 = Dense(embed_dim)
+    
+    def call(self, inputs):
+        x = self.dense_1(inputs)
+        x = self.dense_2(x)
+        return x """
+
+    def __init__(self, d_model, dff):
+        super().__init__()
+
+        self.d_model = d_model
+        self.dff = dff
+
+        self.inner_layer = tf.keras.layers.Dense(dff)
+        self.outer_layer = tf.keras.layers.Dense(d_model)
+
+    def call(self, inputs):
+
+        # Inner layer
+        x = self.inner_layer(inputs)
+        x = tf.nn.relu(x)
+
+        # Outer layer
+        x = self.outer_layer(x)
+
+        return x
+
+class PositionalEncoding(tf.keras.Model):
+
+    def __init__(self, d_model):
+        super().__init__()
+
+        self.d_model = d_model
+
+        self.pe = tf.constant(positional_encoding(d_model), dtype=tf.float32)
+
+    def call(self, inputs):
+
+        # Add positional encoding to the input embeddings
+        x = inputs + self.pe[:tf.shape(inputs)[0], :]
+
+        return x
+```
 
 
 <br><br>
