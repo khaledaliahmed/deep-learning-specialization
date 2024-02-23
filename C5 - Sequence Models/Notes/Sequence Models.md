@@ -271,6 +271,9 @@ Here are the course summary as its given on the course [link](https://www.course
 - _Vanishing gradients_ problem tends to be the bigger problem with RNNs than the _exploding gradients_ problem. We will discuss how to solve it in next sections.
 
 - Exploding gradients can be easily seen when your weight values become `NaN`. So one of the ways solve exploding gradient is to apply **gradient clipping** means if your gradient is more than some threshold - re-scale some of your gradient vector so that is not too big. So there are cliped according to some maximum value.
+    - grad_norm = np.sum(grad * grad)
+      - if grad_norm > clip_threshold:
+          - grad *= (clip_threshold / grad_norm) 
 
   ![](Images/26.png)
 
@@ -409,7 +412,65 @@ Here are the course summary as its given on the course [link](https://www.course
     -  I want a glass of **apple** ______
   - Orange and apple now share a lot of similar features which makes it easier for an algorithm to generalize between them.
   - We call this representation **Word embeddings**.
-- To visualize word embeddings we use a t-SNE algorithm to reduce the features to 2 dimensions which makes it easy to visualize:    
+- To visualize word embeddings we use a t-SNE algorithm to reduce the features to 2 dimensions which makes it easy to visualize:   
+```markdown
+# Visualizing Word Embeddings with t-SNE
+
+To visualize word embeddings using the t-SNE (t-distributed Stochastic Neighbor Embedding) algorithm to reduce the features to 2 dimensions, you can use Python libraries such as `gensim` for handling word embeddings, `scikit-learn` for t-SNE, and `matplotlib` for plotting. Here's a step-by-step guide:
+
+## Step 1: Install Required Libraries
+
+Ensure you have `gensim`, `scikit-learn`, and `matplotlib` installed. You can install them using pip:
+
+```bash
+pip install gensim scikit-learn matplotlib
+```
+
+## Step 2: Load Word Embeddings
+
+This example assumes you have word embeddings in a Word2Vec format. Adjust the loading mechanism based on your embeddings format.
+
+```python
+from gensim.models import KeyedVectors
+
+# Load word embeddings (replace with your actual file path)
+model_path = 'path/to/your/word2vec/model.bin'
+word_vectors = KeyedVectors.load_word2vec_format(model_path, binary=True)
+```
+
+## Step 3: Use t-SNE to Reduce Dimensions
+
+Select a subset of words for better visualization, then apply t-SNE to reduce the dimensions to 2D.
+
+```python
+import numpy as np
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+
+# Select a subset of words
+words = ['king', 'queen', 'man', 'woman', 'paris', 'berlin', 'france', 'germany']
+embeddings = np.array([word_vectors[word] for word in words])
+
+# Apply t-SNE transformation
+tsne = TSNE(n_components=2, random_state=0)
+embeddings_2d = tsne.fit_transform(embeddings)
+
+# Plot
+plt.figure(figsize=(10, 10))
+for i, word in enumerate(words):
+    plt.scatter(embeddings_2d[i, 0], embeddings_2d[i, 1])
+    plt.text(embeddings_2d[i, 0]+0.05, embeddings_2d[i, 1]+0.05, word, fontsize=12)
+plt.show()
+```
+
+### Explanation:
+
+- **Step 2** loads the word embeddings using `gensim`. Replace `'path/to/your/word2vec/model.bin'` with the actual path to your Word2Vec model.
+- **Step 3** selects a subset of words to visualize, extracts their embeddings, applies t-SNE to reduce the dimensionality to 2D, and plots these 2D embeddings using `matplotlib`.
+
+Adjust the `words` list, t-SNE parameters, or plotting settings as needed for your specific dataset or visualization needs.
+```
+```
   ![](Images/29.png)
   - You will get a sense that more related words are closer to each other.
 - The **word embeddings** came from that we need to embed a unique vector inside a n-dimensional space.
@@ -933,10 +994,11 @@ Here are the course summary as its given on the course [link](https://www.course
   - The diagram uses a `RepeatVector` node to copy s<sup>`<t-1>`</sup>'s value T<sub>x</sub> times, and then `Concatenation` to concatenate s<sup>`<t-1>`</sup> and a<sup>`<t>`</sup> to compute e<sup>`<t, t>`</sup>, which is then passed through a softmax to compute &alpha;<sup>`<t, t>`</sup>.
 
 ## Transformer Network
+  - Transformer Network in Pytorch from scratch
+  https://mohitkpandey.github.io/posts/2020/11/trfm-code/
 
 ### The transformer network 
   - is a deep learning model that can learn useful representations of sequences or sets of data-points, such as words in a sentence or pixels in an image. The transformer network does not use recurrent or convolutional layers, which are common in other sequence models, but instead relies on a mechanism called attention. Attention is a way of computing how much each element in a sequence or set is related to every other element, and using these relationships to create richer and more expressive representations. The transformer network uses two types of attention: self-attention and multi-headed attention.
-
 ### Self-attention
 -  Self-attention is a way of computing a representation for each element in a sequence or set by taking into account the context from all the other elements. For example, in natural language processing, self-attention can help a model understand the meaning of a word by looking at the other words in the sentence.
 
@@ -951,8 +1013,10 @@ Here are the course summary as its given on the course [link](https://www.course
   - Attention Weights = softmax(Score)
   - Output = Attention Weights * Value
     - Z = S V
+![Alt text](image-1.png)
 
 ### Multi-headed attention
+![Alt text](image-2.png)
 - Multi-headed attention is a way of computing multiple versions of self-attention in parallel, and concatenating them to form a single output. Multi-headed attention allows the model to capture different aspects of the relationships between the elements, such as syntactic, semantic, or positional information. Multi-headed attention is computed by splitting the query, key, and value matrices into H smaller matrices, where H is the number of heads. Each head computes its own self-attention output, and the outputs are concatenated and projected to form the final output.
 
   - The equations for multi-headed attention are:

@@ -1,0 +1,16 @@
+!git clone https://github.com/{username}/{repository}.git  ## git clone 
+
+!git init 
+username = 'pykhaleda' 				# github username 
+git_token = 'ghp_i24eX3StpOp9qbJpiPBodXa0Ztw' 	# git token from your github
+repository = 'Applied-Deep-Learning-iti'   	# name of repository that you want to clone and push to it
+!git config --global user.name "Khaled Ali"
+!git config --global user.email "khaledalzebibi1@gmail.com"
+!git clone https://github.com/{username}/{repository}.git  ## git clone 
+#----------------------------------------------------------------
+%cd  {repository}
+!git add .
+!git commit -a -m "some_modif"
+!git remote rm origin
+!git remote add origin https://{git_token}@github.com/{username}/{repository}.git
+!git push -u origin main
